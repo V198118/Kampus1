@@ -2,7 +2,7 @@
   "colors": {
     "primary": "#00539f",
     "secondary": "#ff9900",
-    "background": "#f4f4f4",
+    "background": "assets/images/фон расписания.jpg",
     "text": "#333333",
     "buttonBg": "#ffffff",
     "buttonText": "#00539f",
