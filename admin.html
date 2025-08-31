@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Панель администратора</title>
+    <link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+    <div class="admin-container">
+        <h1>Панель администратора</h1>
+        
+        <div class="auth-section" id="auth-section">
+            <input type="password" id="admin-password" placeholder="Введите пароль">
+            <button id="login-btn">Войти</button>
+        </div>
+
+        <div class="admin-panel" id="admin-panel" style="display: none;">
+            <div class="controls">
+                <h2>Цвета</h2>
+                <label>Основной цвет: <input type="color" id="color-primary"></label>
+                <label>Фоновое изображение (URL): <input type="text" id="background-image-url"></label>
+                <!-- Добавьте больше полей для всех параметров из design-config.json -->
+
+                <h2>Шрифты</h2>
+                <label>Шрифт заголовков:
+                    <select id="font-headings">
+                        <option value="'Open Sans', sans-serif">Open Sans</option>
+                        <option value="'Roboto', sans-serif">Roboto</option>
+                        <option value="'Oswald', sans-serif">Oswald</option>
+                    </select>
+                </label>
+                <label>Размер месяца (px): <input type="number" id="font-size-month"></label>
+                <!-- Добавьте поля для других шрифтов -->
+
+                <button id="save-design-btn">Сохранить дизайн</button>
+                <button id="reset-design-btn">Сбросить к стандартному</button>
+            </div>
+
+            <div class="preview">
+                <h2>Предпросмотр</h2>
+                <iframe src="index.html" id="preview-frame"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/admin.js"></script>
+</body>
+</html>

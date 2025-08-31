@@ -1,0 +1,30 @@
+{
+  "colors": {
+    "primary": "#00539f",
+    "secondary": "#ff9900",
+    "background": "#f4f4f4",
+    "text": "#333333",
+    "buttonBg": "#ffffff",
+    "buttonText": "#00539f",
+    "cellBg": "rgba(255, 255, 255, 0.8)",
+    "cellText": "#333333"
+  },
+  "fonts": {
+    "headings": "'Open Sans', sans-serif",
+    "body": "'Roboto', sans-serif",
+    "sizeMonth": "50px",
+    "sizeFilter": "16px",
+    "sizeEventTitle": "14px",
+    "sizeEventDetails": "12px"
+  },
+  "layout": {
+    "backgroundImage": "assets/images/фон расписания.jpg",
+    "headerHeight": "80px",
+    "filterWidth": "250px"
+  },
+  "currentView": {
+    "month": 10,
+    "year": 2023,
+    "activeFilter": "all"
+  }
+}
