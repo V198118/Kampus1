@@ -17,7 +17,7 @@
     "sizeEventDetails": "12px"
   },
   "layout": {
-    "backgroundImage": "assets/images/background.png",
+    "backgroundImage": "https://v198118.github.io/Kampus1/assets/images/background.png",
     "headerHeight": "80px",
     "filterWidth": "250px"
   },
