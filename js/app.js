@@ -84,8 +84,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.documentElement.style.setProperty('--filter-width', config.layout?.filterWidth);
         
         // Фоновое изображение
-        if (config.layout?.backgroundImage) {
-            document.documentElement.style.setProperty('--bg-image', `url(${config.layout.backgroundImage})`);
+       // Установка фонового изображения
+    const bgContainer = document.getElementById('background-container');
+    if (bgContainer && config.layout?.backgroundImage) {
+        bgContainer.style.backgroundImage = `url('${config.layout.backgroundImage}')`;
         }
         
         // Устанавливаем текущий месяц и год из конфига, если есть
