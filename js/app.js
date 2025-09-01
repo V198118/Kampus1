@@ -212,11 +212,21 @@ async function loadDesignConfig() {
                 scrollContainer.appendChild(scrollContent);
                 dayCell.appendChild(scrollContainer);
                 
-                // Клик по ячейке ведет на страницу расписания
-                dayCell.addEventListener('click', () => {
-                    window.location.href = `schedule.html?date=${year}-${month + 1}-${day}`;
-                });
-            }
+               // Клик по ячейке ведет на страницу расписания
+dayCell.addEventListener('click', () => {
+    // Форматируем дату для передачи
+    const formattedDate = `${year}-${(month + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+    
+    // Передаем дату и события этого дня
+    const dayEvents = rssLoader.groupEventsByDate(filteredEvents)[currentDateStr] || [];
+    
+    // Сохраняем данные для страницы расписания
+    sessionStorage.setItem('selectedDate', formattedDate);
+    sessionStorage.setItem('dayEvents', JSON.stringify(dayEvents));
+    
+    // Переходим на страницу расписания
+    window.location.href = `schedule.html?date=${formattedDate}`;
+});
             
             calendarGrid.appendChild(dayCell);
         }
