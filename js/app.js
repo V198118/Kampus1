@@ -119,6 +119,20 @@ async function loadDesignConfig() {
             activeBtn.classList.add('active');
         }
     }
+           if (config.calendar) {
+        const calendarGrid = document.getElementById('calendar');
+        if (calendarGrid) {
+            calendarGrid.style.gridTemplateColumns = `repeat(${config.calendar.gridColumns || 7}, ${config.calendar.cellWidth || '140px'})`;
+            calendarGrid.style.gap = config.calendar.cellMargin || '10px';
+            
+            // Применяем размеры ячеек
+            const dayCells = document.querySelectorAll('.calendar-day');
+            dayCells.forEach(cell => {
+                cell.style.width = config.calendar.cellWidth || '140px';
+                cell.style.height = config.calendar.cellHeight || '120px';
+            });
+        }
+    }
 }
     
     async function loadEvents() {
