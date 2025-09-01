@@ -16,7 +16,6 @@ const App = {
         const calendarCells = ref([]);
         const isAdmin = ref(false);
         const adminPassword = ref('');
-        const sortableInstance = ref(null);
         
         // Загрузка конфигурации
         const loadConfig = async () => {
@@ -48,7 +47,7 @@ const App = {
                 calendarCells.value.push({
                     id: day,
                     day: day,
-                    x: Math.random() * 70, // Случайная позиция
+                    x: Math.random() * 70,
                     y: Math.random() * 70,
                     width: 140,
                     height: 120,
@@ -94,10 +93,6 @@ const App = {
             if (adminPassword.value === 'admin123') {
                 isAdmin.value = true;
                 currentView.value = 'admin';
-                // Инициализируем Sortable после перехода в админку
-                nextTick(() => {
-                    initSortable();
-                });
             } else {
                 alert('Неверный пароль');
             }
@@ -115,54 +110,6 @@ const App = {
             loadConfig();
         });
         
-        // Инициализация перетаскивания для админ-панели
-        const initSortable = () => {
-            const container = document.getElementById('calendar-container');
-            if (container && typeof Sortable !== 'undefined') {
-                // Уничтожаем предыдущий экземпляр, если существует
-                if (sortableInstance.value) {
-                    sortableInstance.value.destroy();
-                }
-                
-                sortableInstance.value = Sortable.create(container, {
-                    animation: 150,
-                    ghostClass: 'sortable-ghost',
-                    onEnd: (evt) => {
-                        // Сохранение нового порядка
-                        const items = Array.from(container.children);
-                        const newCells = items.map(item => {
-                            const id = parseInt(item.dataset.id);
-                            return calendarCells.value.find(cell => cell.id === id);
-                        }).filter(cell => cell);
-                        
-                        // Обновляем позиции на основе нового порядка
-                        newCells.forEach((cell, index) => {
-                            cell.x = (index % 7) * 14;
-                            cell.y = Math.floor(index / 7) * 20;
-                        });
-                        
-                        calendarCells.value = newCells;
-                    }
-                });
-            } else {
-                console.error('Sortable not available or container not found');
-            }
-        };
-        
-        // Обновление позиции ячейки
-        const updateCellPosition = (cell, event) => {
-            const container = document.getElementById('calendar-container');
-            if (!container) return;
-            
-            const rect = container.getBoundingClientRect();
-            const x = ((event.clientX - rect.left) / rect.width) * 100;
-            const y = ((event.clientY - rect.top) / rect.height) * 100;
-            
-            // Ограничиваем позицию в пределах контейнера
-            cell.x = Math.max(0, Math.min(90, x));
-            cell.y = Math.max(0, Math.min(90, y));
-        };
-        
         // Вычисляемые свойства
         const monthName = computed(() => {
             const months = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь",
@@ -175,7 +122,8 @@ const App = {
             return {
                 backgroundImage: bgImage ? `url('${bgImage}')` : 'none',
                 backgroundSize: 'cover',
-                backgroundPosition: 'center'
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat'
             };
         });
         
@@ -191,8 +139,7 @@ const App = {
             changeMonth,
             goToSchedule,
             authenticateAdmin,
-            saveDesign,
-            updateCellPosition
+            saveDesign
         };
     },
     template: `
@@ -219,11 +166,10 @@ const App = {
                 </nav>
             </aside>
 
-            <main class="calendar-container" id="calendar-container">
+            <main class="calendar-container">
                 <div 
                     v-for="cell in calendarCells" 
                     :key="cell.id"
-                    :data-id="cell.id"
                     class="calendar-cell" 
                     :style="{ 
                         left: cell.x + '%', 
@@ -236,7 +182,6 @@ const App = {
                     <img v-if="cell.image" :src="cell.image" class="cell-image" />
                     <div v-if="cell.text" class="cell-text" :style="cell.textStyle">{{ cell.text }}</div>
                     
-                    <!-- Здесь будет RSS-контент -->
                     <div class="event-scroll-container">
                         <div class="event-scroll">
                             <div class="event-title">Пример события</div>
@@ -261,7 +206,7 @@ const App = {
                 <div class="control-group">
                     <h3>Фоновое изображение</h3>
                     <input type="text" v-model="designConfig.layout.backgroundImage" placeholder="URL фонового изображения">
-                    <button @click="designConfig.layout.backgroundImage = ''">Очистить</button>
+                    <p class="help-text">Полный URL, например: https://v198118.github.io/Kampus1/assets/images/1.png</p>
                 </div>
                 
                 <div class="control-group">
@@ -292,13 +237,21 @@ const App = {
                             Высота: 
                             <input type="number" v-model.number="cell.height">
                         </label>
+                        <label>
+                            Позиция X (%): 
+                            <input type="number" v-model.number="cell.x">
+                        </label>
+                        <label>
+                            Позиция Y (%): 
+                            <input type="number" v-model.number="cell.y">
+                        </label>
                     </div>
                 </div>
             </div>
             
             <div class="admin-preview">
-                <h3>Предпросмотр (перетаскивайте ячейки мышкой)</h3>
-                <div class="preview-container" id="admin-preview">
+                <h3>Предпросмотр</h3>
+                <div class="preview-container">
                     <div 
                         v-for="cell in calendarCells" 
                         :key="cell.id"
@@ -309,18 +262,16 @@ const App = {
                             width: cell.width + 'px',
                             height: cell.height + 'px'
                         }"
-                        @mousedown="(e) => { e.preventDefault(); isDragging = true; currentCell = cell; }"
                     >
                         <img v-if="cell.image" :src="cell.image" class="cell-image" />
                         <div v-if="cell.text" class="cell-text" :style="cell.textStyle">{{ cell.text }}</div>
-                        <div class="resize-handle" @mousedown.stop="startResize(cell, $event)"></div>
                     </div>
                 </div>
             </div>
             
             <div class="admin-actions">
-                <button @click="saveDesign">Сохранить дизайн</button>
-                <button @click="currentView = 'calendar'">Вернуться к календарю</button>
+                <button @click="saveDesign" class="btn-save">Сохранить дизайн</button>
+                <button @click="currentView = 'calendar'" class="btn-back">Вернуться к календарю</button>
             </div>
         </div>
     `
