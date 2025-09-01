@@ -4,14 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Календарь мероприятий</title>
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-    <script src="https://unpkg.com/sortablejs@1.14.0/Sortable.min.js"></script>
+    <!-- Подключение Vue 3 через jsDelivr -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.2.31/dist/vue.global.js"></script>
+    <!-- Ваши стили -->
     <link rel="stylesheet" href="css/style.css">
+    <!-- Подключение шрифтов -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 </head>
 <body>
-    <div id="app"></div>
+    <div id="app">
+        <!-- Ваше Vue-приложение здесь -->
+        {{ message }}
+    </div>
+
+    <!-- Ваши скрипты -->
     <script src="js/vue-app.js"></script>
 </body>
 </html>
