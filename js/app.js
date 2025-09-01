@@ -60,51 +60,61 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
     
-    function applyDesign(config) {
-        // Применяем цвета
-        document.documentElement.style.setProperty('--primary-color', config.colors?.primary);
-        document.documentElement.style.setProperty('--secondary-color', config.colors?.secondary);
-        document.documentElement.style.setProperty('--bg-color', config.colors?.background);
-        document.documentElement.style.setProperty('--text-color', config.colors?.text);
-        document.documentElement.style.setProperty('--button-bg', config.colors?.buttonBg);
-        document.documentElement.style.setProperty('--button-text', config.colors?.buttonText);
-        document.documentElement.style.setProperty('--cell-bg', config.colors?.cellBg);
-        document.documentElement.style.setProperty('--cell-text', config.colors?.cellText);
-        
-        // Применяем шрифты
-        document.documentElement.style.setProperty('--headings-font', config.fonts?.headings);
-        document.documentElement.style.setProperty('--body-font', config.fonts?.body);
-        document.documentElement.style.setProperty('--font-size-month', config.fonts?.sizeMonth);
-        document.documentElement.style.setProperty('--font-size-filter', config.fonts?.sizeFilter);
-        document.documentElement.style.setProperty('--font-size-event-title', config.fonts?.sizeEventTitle);
-        document.documentElement.style.setProperty('--font-size-event-details', config.fonts?.sizeEventDetails);
-        
-        // Применяем layout
-        document.documentElement.style.setProperty('--header-height', config.layout?.headerHeight);
-        document.documentElement.style.setProperty('--filter-width', config.layout?.filterWidth);
-        
-        // Фоновое изображение
-       // Установка фонового изображения
+   function applyDesign(config) {
+    console.log('Загружен конфиг:', config);
+    
+    // Применяем цвета
+    document.documentElement.style.setProperty('--primary-color', config.colors?.primary);
+    document.documentElement.style.setProperty('--secondary-color', config.colors?.secondary);
+    document.documentElement.style.setProperty('--text-color', config.colors?.text);
+    document.documentElement.style.setProperty('--button-bg', config.colors?.buttonBg);
+    document.documentElement.style.setProperty('--button-text', config.colors?.buttonText);
+    document.documentElement.style.setProperty('--cell-bg', config.colors?.cellBg);
+    document.documentElement.style.setProperty('--cell-text', config.colors?.cellText);
+    
+    // Применяем шрифты
+    document.documentElement.style.setProperty('--headings-font', config.fonts?.headings);
+    document.documentElement.style.setProperty('--body-font', config.fonts?.body);
+    document.documentElement.style.setProperty('--font-size-month', config.fonts?.sizeMonth);
+    document.documentElement.style.setProperty('--font-size-filter', config.fonts?.sizeFilter);
+    document.documentElement.style.setProperty('--font-size-event-title', config.fonts?.sizeEventTitle);
+    document.documentElement.style.setProperty('--font-size-event-details', config.fonts?.sizeEventDetails);
+    
+    // Применяем layout
+    document.documentElement.style.setProperty('--header-height', config.layout?.headerHeight);
+    document.documentElement.style.setProperty('--filter-width', config.layout?.filterWidth);
+    
+    // Фоновое изображение
     const bgContainer = document.getElementById('background-container');
+    console.log('Элемент background-container:', bgContainer);
+    
     if (bgContainer && config.layout?.backgroundImage) {
+        console.log('Устанавливаем фон:', config.layout.backgroundImage);
         bgContainer.style.backgroundImage = `url('${config.layout.backgroundImage}')`;
-        }
         
-        // Устанавливаем текущий месяц и год из конфига, если есть
-        if (config.currentView?.month !== undefined && config.currentView?.year) {
-            currentDate = new Date(config.currentView.year, config.currentView.month, 1);
-        }
-        
-        // Устанавливаем активный фильтр
-        if (config.currentView?.activeFilter) {
-            currentFilter = config.currentView.activeFilter;
-            const activeBtn = document.querySelector(`.filter-btn[data-filter="${currentFilter}"]`);
-            if (activeBtn) {
-                filterButtons.forEach(b => b.classList.remove('active'));
-                activeBtn.classList.add('active');
-            }
+        // Проверяем, установился ли фон
+        setTimeout(() => {
+            console.log('Текущий фон элемента:', getComputedStyle(bgContainer).backgroundImage);
+        }, 100);
+    } else {
+        console.error('Не удалось установить фон: контейнер или URL не найдены');
+    }
+    
+    // Устанавливаем текущий месяц и год из конфига, если есть
+    if (config.currentView?.month !== undefined && config.currentView?.year) {
+        currentDate = new Date(config.currentView.year, config.currentView.month, 1);
+    }
+    
+    // Устанавливаем активный фильтр
+    if (config.currentView?.activeFilter) {
+        currentFilter = config.currentView.activeFilter;
+        const activeBtn = document.querySelector(`.filter-btn[data-filter="${currentFilter}"]`);
+        if (activeBtn) {
+            filterButtons.forEach(b => b.classList.remove('active'));
+            activeBtn.classList.add('active');
         }
     }
+}
     
     async function loadEvents() {
         allEvents = await rssLoader.loadEvents();
