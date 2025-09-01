@@ -32,8 +32,6 @@ const ScheduleApp = {
         
         // Загрузка данных о событиях
         const loadEvents = () => {
-            // Здесь будет загрузка событий из RSS
-            // Временные данные для примера
             dayEvents.value = [
                 {
                     title: 'Пример события 1',
@@ -72,7 +70,8 @@ const ScheduleApp = {
             return {
                 backgroundImage: bgImage ? `url('${bgImage}')` : 'none',
                 backgroundSize: 'cover',
-                backgroundPosition: 'center'
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat'
             };
         });
         
