@@ -2,7 +2,6 @@
   "colors": {
     "primary": "#00539f",
     "secondary": "#ff9900",
-    "background": "",
     "text": "#333333",
     "buttonBg": "#ffffff",
     "buttonText": "#00539f",
@@ -18,7 +17,7 @@
     "sizeEventDetails": "12px"
   },
   "layout": {
-    "backgroundImage": "v198118.github.io/Kampus1/assets/images/фон расписания.png",
+    "backgroundImage": "assets/images/background.png",
     "headerHeight": "80px",
     "filterWidth": "250px"
   },
