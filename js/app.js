@@ -50,16 +50,21 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
     
     // Функции
-    async function loadDesignConfig() {
-        try {
-            const response = await fetch('config/design-config.json');
-            return await response.json();
-        } catch (error) {
-            console.error('Ошибка загрузки конфига:', error);
-            return {};
+async function loadDesignConfig() {
+    try {
+        console.log('Загружаем конфиг из config/design-config.json...');
+        const response = await fetch('config/design-config.json');
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
+        const config = await response.json();
+        console.log('Конфиг успешно загружен:', config);
+        return config;
+    } catch (error) {
+        console.error('Ошибка загрузки конфига:', error);
+        return {};
     }
-    
+}
    function applyDesign(config) {
     console.log('Загружен конфиг:', config);
     
