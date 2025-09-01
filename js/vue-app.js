@@ -1,4 +1,4 @@
-const { createApp, ref, reactive, onMounted, computed } = Vue;
+const { createApp, ref, reactive, onMounted, computed, nextTick } = Vue;
 
 const App = {
     setup() {
@@ -8,10 +8,15 @@ const App = {
             year: new Date().getFullYear(),
             month: new Date().getMonth()
         });
-        const designConfig = reactive({});
+        const designConfig = reactive({
+            layout: {
+                backgroundImage: ""
+            }
+        });
         const calendarCells = ref([]);
         const isAdmin = ref(false);
         const adminPassword = ref('');
+        const sortableInstance = ref(null);
         
         // Загрузка конфигурации
         const loadConfig = async () => {
@@ -30,6 +35,7 @@ const App = {
                 }
             } catch (error) {
                 console.error('Ошибка загрузки конфига:', error);
+                initializeCalendarCells();
             }
         };
         
@@ -42,8 +48,8 @@ const App = {
                 calendarCells.value.push({
                     id: day,
                     day: day,
-                    x: Math.random() * 80, // Случайная позиция
-                    y: Math.random() * 80,
+                    x: Math.random() * 70, // Случайная позиция
+                    y: Math.random() * 70,
                     width: 140,
                     height: 120,
                     text: '',
@@ -88,6 +94,10 @@ const App = {
             if (adminPassword.value === 'admin123') {
                 isAdmin.value = true;
                 currentView.value = 'admin';
+                // Инициализируем Sortable после перехода в админку
+                nextTick(() => {
+                    initSortable();
+                });
             } else {
                 alert('Неверный пароль');
             }
@@ -96,34 +106,61 @@ const App = {
         // Сохранение дизайна
         const saveDesign = () => {
             localStorage.setItem('calendarCells', JSON.stringify(calendarCells.value));
+            localStorage.setItem('designConfig', JSON.stringify(designConfig));
             alert('Дизайн сохранен!');
         };
         
         // Инициализация при загрузке
         onMounted(() => {
             loadConfig();
-            initSortable();
         });
         
         // Инициализация перетаскивания для админ-панели
         const initSortable = () => {
-            setTimeout(() => {
-                const container = document.getElementById('calendar-container');
-                if (container) {
-                    Sortable.create(container, {
-                        animation: 150,
-                        ghostClass: 'sortable-ghost',
-                        onEnd: (evt) => {
-                            // Сохранение нового порядка
-                            const items = Array.from(container.children);
-                            calendarCells.value = items.map(item => {
-                                const id = parseInt(item.dataset.id);
-                                return calendarCells.value.find(cell => cell.id === id);
-                            }).filter(cell => cell);
-                        }
-                    });
+            const container = document.getElementById('calendar-container');
+            if (container && typeof Sortable !== 'undefined') {
+                // Уничтожаем предыдущий экземпляр, если существует
+                if (sortableInstance.value) {
+                    sortableInstance.value.destroy();
                 }
-            }, 500);
+                
+                sortableInstance.value = Sortable.create(container, {
+                    animation: 150,
+                    ghostClass: 'sortable-ghost',
+                    onEnd: (evt) => {
+                        // Сохранение нового порядка
+                        const items = Array.from(container.children);
+                        const newCells = items.map(item => {
+                            const id = parseInt(item.dataset.id);
+                            return calendarCells.value.find(cell => cell.id === id);
+                        }).filter(cell => cell);
+                        
+                        // Обновляем позиции на основе нового порядка
+                        newCells.forEach((cell, index) => {
+                            cell.x = (index % 7) * 14;
+                            cell.y = Math.floor(index / 7) * 20;
+                        });
+                        
+                        calendarCells.value = newCells;
+                    }
+                });
+            } else {
+                console.error('Sortable not available or container not found');
+            }
+        };
+        
+        // Обновление позиции ячейки
+        const updateCellPosition = (cell, event) => {
+            const container = document.getElementById('calendar-container');
+            if (!container) return;
+            
+            const rect = container.getBoundingClientRect();
+            const x = ((event.clientX - rect.left) / rect.width) * 100;
+            const y = ((event.clientY - rect.top) / rect.height) * 100;
+            
+            // Ограничиваем позицию в пределах контейнера
+            cell.x = Math.max(0, Math.min(90, x));
+            cell.y = Math.max(0, Math.min(90, y));
         };
         
         // Вычисляемые свойства
@@ -134,8 +171,9 @@ const App = {
         });
         
         const backgroundStyle = computed(() => {
+            const bgImage = designConfig.layout?.backgroundImage || '';
             return {
-                backgroundImage: `url('${designConfig.layout?.backgroundImage || ''}')`,
+                backgroundImage: bgImage ? `url('${bgImage}')` : 'none',
                 backgroundSize: 'cover',
                 backgroundPosition: 'center'
             };
@@ -153,7 +191,8 @@ const App = {
             changeMonth,
             goToSchedule,
             authenticateAdmin,
-            saveDesign
+            saveDesign,
+            updateCellPosition
         };
     },
     template: `
@@ -222,6 +261,7 @@ const App = {
                 <div class="control-group">
                     <h3>Фоновое изображение</h3>
                     <input type="text" v-model="designConfig.layout.backgroundImage" placeholder="URL фонового изображения">
+                    <button @click="designConfig.layout.backgroundImage = ''">Очистить</button>
                 </div>
                 
                 <div class="control-group">
@@ -244,12 +284,20 @@ const App = {
                             Цвет текста: 
                             <input type="color" v-model="cell.textStyle.color">
                         </label>
+                        <label>
+                            Ширина: 
+                            <input type="number" v-model.number="cell.width">
+                        </label>
+                        <label>
+                            Высота: 
+                            <input type="number" v-model.number="cell.height">
+                        </label>
                     </div>
                 </div>
             </div>
             
             <div class="admin-preview">
-                <h3>Предпросмотр</h3>
+                <h3>Предпросмотр (перетаскивайте ячейки мышкой)</h3>
                 <div class="preview-container" id="admin-preview">
                     <div 
                         v-for="cell in calendarCells" 
@@ -261,9 +309,11 @@ const App = {
                             width: cell.width + 'px',
                             height: cell.height + 'px'
                         }"
+                        @mousedown="(e) => { e.preventDefault(); isDragging = true; currentCell = cell; }"
                     >
                         <img v-if="cell.image" :src="cell.image" class="cell-image" />
                         <div v-if="cell.text" class="cell-text" :style="cell.textStyle">{{ cell.text }}</div>
+                        <div class="resize-handle" @mousedown.stop="startResize(cell, $event)"></div>
                     </div>
                 </div>
             </div>
