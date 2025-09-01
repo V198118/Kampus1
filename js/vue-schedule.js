@@ -1,10 +1,14 @@
-const { createApp, ref, reactive, onMounted } = Vue;
+const { createApp, ref, reactive, onMounted, computed } = Vue;
 
 const ScheduleApp = {
     setup() {
         const selectedDate = ref('');
         const dayEvents = ref([]);
-        const designConfig = reactive({});
+        const designConfig = reactive({
+            layout: {
+                backgroundImage: ""
+            }
+        });
         
         // Загрузка конфигурации
         const loadConfig = async () => {
@@ -12,6 +16,15 @@ const ScheduleApp = {
                 const response = await fetch('config/design-config.json');
                 const config = await response.json();
                 Object.assign(designConfig, config);
+                
+                // Проверяем localStorage для переопределения конфига
+                const savedConfig = localStorage.getItem('designConfig');
+                if (savedConfig) {
+                    const parsedConfig = JSON.parse(savedConfig);
+                    if (parsedConfig.layout && parsedConfig.layout.backgroundImage) {
+                        designConfig.layout.backgroundImage = parsedConfig.layout.backgroundImage;
+                    }
+                }
             } catch (error) {
                 console.error('Ошибка загрузки конфига:', error);
             }
@@ -55,8 +68,9 @@ const ScheduleApp = {
         });
         
         const backgroundStyle = computed(() => {
+            const bgImage = designConfig.layout?.backgroundImage || '';
             return {
-                backgroundImage: `url('${designConfig.layout?.backgroundImage || ''}')`,
+                backgroundImage: bgImage ? `url('${bgImage}')` : 'none',
                 backgroundSize: 'cover',
                 backgroundPosition: 'center'
             };
