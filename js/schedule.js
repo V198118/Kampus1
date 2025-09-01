@@ -2,10 +2,27 @@ document.addEventListener('DOMContentLoaded', async () => {
     const scheduleContainer = document.getElementById('daily-events');
     const scheduleDate = document.getElementById('schedule-date');
     
-    // Получаем дату из URL параметра
+    // Получаем дату из URL параметра или sessionStorage
     const urlParams = new URLSearchParams(window.location.search);
-    const dateParam = urlParams.get('date');
+    let dateParam = urlParams.get('date');
+    
+    // Если параметр не передан, пробуем получить из sessionStorage
+    if (!dateParam) {
+        dateParam = sessionStorage.getItem('selectedDate');
+    }
+    
     const targetDate = dateParam ? new Date(dateParam) : new Date();
+    
+    // Получаем события из sessionStorage
+    let dayEvents = [];
+    try {
+        const eventsData = sessionStorage.getItem('dayEvents');
+        if (eventsData) {
+            dayEvents = JSON.parse(eventsData);
+        }
+    } catch (e) {
+        console.error('Ошибка парсинга событий:', e);
+    }
     
     // Форматируем дату для заголовка
     const dateOptions = { day: 'numeric', month: 'long', year: 'numeric' };
@@ -17,19 +34,35 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Применяем дизайн из конфига
     applyDesign(designConfig);
     
-    // Загружаем и отображаем события
-    await loadAndDisplayEvents();
-    
-    async function loadDesignConfig() {
-        try {
-            const response = await fetch('config/design-config.json');
-            return await response.json();
-        } catch (error) {
-            console.error('Ошибка загрузки конфига:', error);
-            return {};
-        }
+    // Если события не были переданы, загружаем их
+    if (dayEvents.length === 0) {
+        await loadAndDisplayEvents(targetDate);
+    } else {
+        // Отображаем переданные события
+        displayEvents(dayEvents);
     }
-    
+    function displayEvents(events) {
+        if (events.length === 0) {
+            scheduleContainer.innerHTML = '<p>На этот день мероприятий не запланировано.</p>';
+            return;
+        }
+        
+        scheduleContainer.innerHTML = '';
+        events.forEach(event => {
+            const eventElement = document.createElement('div');
+            eventElement.className = 'schedule-event';
+            
+            eventElement.innerHTML = `
+                <h3>${event.title}</h3>
+                <p><strong>Организация:</strong> ${event.organization}</p>
+                <p><strong>Время:</strong> ${event.time}</p>
+                <p><strong>Место:</strong> ${event.place}</p>
+                <p>${event.description || ''}</p>
+            `;
+            
+            scheduleContainer.appendChild(eventElement);
+        });
+    }
     function applyDesign(config) {
         // Применяем цвета
         document.documentElement.style.setProperty('--primary-color', config.colors?.primary);
