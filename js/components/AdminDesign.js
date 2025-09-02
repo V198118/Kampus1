@@ -20,6 +20,12 @@ const AdminDesign = {
             psbStatus: ''
         };
     },
+    computed: {
+        // Добавляем вычисляемое свойство для безопасного доступа к backgroundImage
+        backgroundImage() {
+            return this.designConfig?.layout?.backgroundImage || '';
+        }
+    },
     methods: {
         // Начало перемещения ячейки
         startDrag(event, cell) {
@@ -104,8 +110,14 @@ const AdminDesign = {
                 
                 // Применяем данные из PSB
                 if (psbData.background) {
-                    this.designConfig.layout.backgroundImage = psbData.background;
-                    this.$emit('update-config', this.designConfig);
+                    // Используем безопасное обновление конфигурации
+                    this.$emit('update-config', {
+                        ...this.designConfig,
+                        layout: {
+                            ...this.designConfig.layout,
+                            backgroundImage: psbData.background
+                        }
+                    });
                 }
                 
                 if (psbData.cells && psbData.cells.length > 0) {
@@ -165,7 +177,7 @@ const AdminDesign = {
                     <p>Перетаскивайте ячейки для изменения их положения. Щелкните правой кнопкой для детальных настроек.</p>
                     
                     <div class="admin-preview">
-                        <div class="preview-container" ref="previewContainer" :style="{ backgroundImage: 'url(' + designConfig.layout.backgroundImage + ')', backgroundSize: 'cover' }">
+                        <div class="preview-container" ref="previewContainer" :style="{ backgroundImage: 'url(' + backgroundImage + ')', backgroundSize: 'cover' }">
                             <div 
                                 v-for="cell in calendarCells" 
                                 :key="cell.id"
@@ -175,9 +187,9 @@ const AdminDesign = {
                                     top: cell.y + '%',
                                     width: cell.width + 'px',
                                     height: cell.height + 'px',
-                                    fontSize: cell.textStyle.fontSize,
-                                    fontFamily: cell.textStyle.fontFamily,
-                                    color: cell.textStyle.color
+                                    fontSize: cell.textStyle?.fontSize || '14px',
+                                    fontFamily: cell.textStyle?.fontFamily || 'Arial',
+                                    color: cell.textStyle?.color || '#000000'
                                 }"
                                 @mousedown="startDrag($event, cell)"
                                 @contextmenu.prevent="showContextMenu($event, cell)"
