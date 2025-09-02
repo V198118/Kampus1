@@ -1,3 +1,4 @@
+// Приложение расписания
 const { createApp, ref, reactive, onMounted, computed } = Vue;
 
 const ScheduleApp = {
@@ -13,16 +14,14 @@ const ScheduleApp = {
         // Загрузка конфигурации
         const loadConfig = async () => {
             try {
-                const response = await fetch('config/design-config.json');
-                const config = await response.json();
+                const config = await ConfigUtils.loadConfig();
                 Object.assign(designConfig, config);
                 
                 // Проверяем localStorage для переопределения конфига
-                const savedConfig = localStorage.getItem('designConfig');
+                const savedConfig = ConfigUtils.loadSavedConfig();
                 if (savedConfig) {
-                    const parsedConfig = JSON.parse(savedConfig);
-                    if (parsedConfig.layout && parsedConfig.layout.backgroundImage) {
-                        designConfig.layout.backgroundImage = parsedConfig.layout.backgroundImage;
+                    if (savedConfig.layout && savedConfig.layout.backgroundImage) {
+                        designConfig.layout.backgroundImage = savedConfig.layout.backgroundImage;
                     }
                 }
             } catch (error) {
@@ -32,6 +31,7 @@ const ScheduleApp = {
         
         // Загрузка данных о событиях
         const loadEvents = () => {
+            // В реальном приложении здесь должен быть запрос к API
             dayEvents.value = [
                 {
                     title: 'Пример события 1',
