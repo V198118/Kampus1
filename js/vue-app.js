@@ -1,3 +1,4 @@
+// Основное приложение
 const { createApp, ref, reactive, onMounted, computed } = Vue;
 
 const App = {
@@ -8,39 +9,40 @@ const App = {
             year: new Date().getFullYear(),
             month: new Date().getMonth()
         });
-        const designConfig = reactive({
-            layout: {
-                backgroundImage: ""
-            }
-        });
+        const designConfig = reactive({});
         const calendarCells = ref([]);
         const isAdmin = ref(false);
         const adminPassword = ref('');
         const currentFilter = ref('all');
         const isFilterSidebarOpen = ref(false);
         
-        // Загрузка конфигурации
+        // Загрузка конфигурации и ячеек
         const loadConfig = async () => {
             try {
-                const response = await fetch('config/design-config.json');
-                const config = await response.json();
+                // Загрузка конфигурации
+                const config = await ConfigUtils.loadConfig();
                 Object.assign(designConfig, config);
                 
-                // Проверяем localStorage для переопределения конфига
-                const savedConfig = localStorage.getItem('designConfig');
+                // Загрузка сохраненной конфигурации
+                const savedConfig = ConfigUtils.loadSavedConfig();
                 if (savedConfig) {
-                    const parsedConfig = JSON.parse(savedConfig);
-                    if (parsedConfig.layout && parsedConfig.layout.backgroundImage) {
-                        designConfig.layout.backgroundImage = parsedConfig.layout.backgroundImage;
+                    if (savedConfig.layout && savedConfig.layout.backgroundImage) {
+                        designConfig.layout.backgroundImage = savedConfig.layout.backgroundImage;
+                    }
+                    if (savedConfig.texts) {
+                        designConfig.texts = savedConfig.texts;
                     }
                 }
                 
-                // Загрузка сохраненных ячеек
-                const savedCells = localStorage.getItem('calendarCells');
+                // Загрузка ячеек
+                const savedCells = CellUtils.loadCells();
                 if (savedCells) {
-                    calendarCells.value = JSON.parse(savedCells);
+                    calendarCells.value = CellUtils.updateMonthCell(
+                        savedCells, 
+                        monthName.value, 
+                        currentDate.year
+                    );
                 } else {
-                    // Инициализация ячеек по умолчанию
                     initializeCalendarCells();
                 }
             } catch (error) {
@@ -51,32 +53,16 @@ const App = {
         
         // Инициализация ячеек календаря
         const initializeCalendarCells = () => {
-            const daysInMonth = new Date(currentDate.year, currentDate.month + 1, 0).getDate();
-            calendarCells.value = [];
-            
-            for (let day = 1; day <= daysInMonth; day++) {
-                // Случайным образом определяем тип события для демонстрации
-                const eventTypes = ['event', 'class', 'event', 'class', 'event'];
-                const randomEventType = eventTypes[Math.floor(Math.random() * eventTypes.length)];
-                
-                calendarCells.value.push({
-                    id: day,
-                    day: day,
-                    x: Math.random() * 70,
-                    y: Math.random() * 70,
-                    width: 140,
-                    height: 120,
-                    text: '',
-                    image: '',
-                    eventType: randomEventType, // Тип события для фильтрации
-                    textStyle: {
-                        fontSize: '14px',
-                        fontFamily: 'Arial',
-                        color: '#000000',
-                        zIndex: 10
-                    }
-                });
-            }
+            calendarCells.value = CellUtils.initializeCalendarCells(
+                currentDate.year, 
+                currentDate.month,
+                calendarCells.value
+            );
+            calendarCells.value = CellUtils.updateMonthCell(
+                calendarCells.value,
+                monthName.value,
+                currentDate.year
+            );
         };
         
         // Переключение месяца
@@ -102,18 +88,6 @@ const App = {
             currentFilter.value = filter;
         };
         
-        // Фильтрация ячеек
-        const filteredCells = computed(() => {
-            if (currentFilter.value === 'all') {
-                return calendarCells.value;
-            } else if (currentFilter.value === 'events') {
-                return calendarCells.value.filter(cell => cell.eventType === 'event');
-            } else if (currentFilter.value === 'classes') {
-                return calendarCells.value.filter(cell => cell.eventType === 'class');
-            }
-            return calendarCells.value;
-        });
-        
         // Переход к расписанию
         const goToSchedule = (day) => {
             const formattedDate = `${currentDate.year}-${(currentDate.month + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
@@ -122,10 +96,10 @@ const App = {
         };
         
         // Аутентификация администратора
-        const authenticateAdmin = () => {
-            if (adminPassword.value === 'admin123') {
+        const authenticateAdmin = (password) => {
+            if (password === 'admin123') {
                 isAdmin.value = true;
-                currentView.value = 'admin';
+                window.location.href = 'admin.html';
             } else {
                 alert('Неверный пароль');
             }
@@ -133,14 +107,29 @@ const App = {
         
         // Сохранение дизайна
         const saveDesign = () => {
-            localStorage.setItem('calendarCells', JSON.stringify(calendarCells.value));
-            localStorage.setItem('designConfig', JSON.stringify(designConfig));
+            CellUtils.saveCells(calendarCells.value);
+            ConfigUtils.saveConfig(designConfig);
             alert('Дизайн сохранен!');
         };
         
         // Переключение боковой панели
         const toggleFilterSidebar = () => {
             isFilterSidebarOpen.value = !isFilterSidebarOpen.value;
+        };
+        
+        // Переключение меню
+        const toggleMenu = (cell) => {
+            if (cell.id === 'menu') {
+                cell.isExpanded = !cell.isExpanded;
+                
+                if (cell.isExpanded) {
+                    cell.width = 200;
+                    cell.height = 160;
+                } else {
+                    cell.width = 100;
+                    cell.height = 40;
+                }
+            }
         };
         
         // Инициализация при загрузке
@@ -169,6 +158,15 @@ const App = {
             return isFilterSidebarOpen.value ? 'filter-sidebar active' : 'filter-sidebar';
         });
         
+        const texts = computed(() => {
+            return designConfig.texts || {
+                allEvents: "Все события",
+                events: "Мероприятия",
+                classes: "Занятия",
+                admin: "Админ-панель"
+            };
+        });
+        
         return {
             currentView,
             currentDate,
@@ -180,173 +178,46 @@ const App = {
             isFilterSidebarOpen,
             monthName,
             backgroundStyle,
-            filteredCells,
             filterSidebarClass,
+            texts,
             changeMonth,
             goToSchedule,
             authenticateAdmin,
             saveDesign,
             setFilter,
-            toggleFilterSidebar
+            toggleFilterSidebar,
+            toggleMenu
         };
     },
+    components: {
+        Calendar,
+        AdminAuth
+    },
     template: `
-        <div id="background-container" :style="backgroundStyle"></div>
-        
-        <div v-if="currentView === 'calendar'">
-            <header>
-                <div class="month-navigation">
-                    <button @click="changeMonth('prev')">&lt;</button>
-                    <h1>{{ monthName }} {{ currentDate.year }}</h1>
-                    <button @click="changeMonth('next')">&gt;</button>
-                </div>
-            </header>
-
-            <aside :class="filterSidebarClass">
-                <div class="filter-toggle" @click="toggleFilterSidebar">
-                    <span>☰</span>
-                </div>
-                <nav class="filter-menu">
-                    <button 
-                        :class="['filter-btn', { active: currentFilter === 'all' }]" 
-                        @click="setFilter('all')"
-                    >
-                        Все события
-                    </button>
-                    <button 
-                        :class="['filter-btn', { active: currentFilter === 'events' }]" 
-                        @click="setFilter('events')"
-                    >
-                        Мероприятия
-                    </button>
-                    <button 
-                        :class="['filter-btn', { active: currentFilter === 'classes' }]" 
-                        @click="setFilter('classes')"
-                    >
-                        Занятия
-                    </button>
-                    <button @click="currentView = 'adminAuth'" class="filter-btn">
-                        Админ-панель
-                    </button>
-                </nav>
-            </aside>
-
-            <main class="calendar-container">
-                <div 
-                    v-for="cell in filteredCells" 
-                    :key="cell.id"
-                    class="calendar-cell" 
-                    :style="{ 
-                        left: cell.x + '%', 
-                        top: cell.y + '%',
-                        width: cell.width + 'px',
-                        height: cell.height + 'px'
-                    }"
-                    @click="goToSchedule(cell.day)"
-                >
-                    <img v-if="cell.image" :src="cell.image" class="cell-image" :style="{ width: cell.width + 'px', height: cell.height + 'px' }" />
-                    <div v-if="cell.text" class="cell-text" :style="cell.textStyle">{{ cell.text }}</div>
-                    
-                    <div class="event-scroll-container">
-                        <div class="event-scroll">
-                            <div class="event-title">
-                                {{ cell.eventType === 'event' ? 'Мероприятие' : 'Занятие' }} {{ cell.day }}
-                            </div>
-                            <div class="event-details">Организация, время, место</div>
-                        </div>
-                    </div>
-                </div>
-            </main>
-        </div>
-        
-        <div v-else-if="currentView === 'adminAuth'" class="admin-auth">
-            <h2>Вход в админ-панель</h2>
-            <input type="password" v-model="adminPassword" placeholder="Введите пароль">
-            <button @click="authenticateAdmin">Войти</button>
-            <button @click="currentView = 'calendar'">Назад</button>
-        </div>
-        
-        <div v-else-if="currentView === 'admin'" class="admin-panel">
-            <h2>Редактирование дизайна</h2>
+        <div>
+            <Calendar 
+                v-if="currentView === 'calendar'"
+                :current-date="currentDate"
+                :design-config="designConfig"
+                :calendar-cells="calendarCells"
+                :current-filter="currentFilter"
+                :is-filter-sidebar-open="isFilterSidebarOpen"
+                :month-name="monthName"
+                :background-style="backgroundStyle"
+                :texts="texts"
+                @change-month="changeMonth"
+                @set-filter="setFilter"
+                @go-to-schedule="goToSchedule"
+                @show-admin-auth="currentView = 'adminAuth'"
+                @toggle-filter-sidebar="toggleFilterSidebar"
+                @toggle-menu="toggleMenu"
+            />
             
-            <div class="admin-controls">
-                <div class="control-group">
-                    <h3>Фоновое изображение</h3>
-                    <input type="text" v-model="designConfig.layout.backgroundImage" placeholder="URL фонового изображения">
-                    <p class="help-text">Полный URL, например: https://v198118.github.io/Kampus1/assets/images/1.png</p>
-                </div>
-                
-                <div class="control-group">
-                    <h3>Редактирование ячеек</h3>
-                    <div v-for="(cell, index) in calendarCells" :key="cell.id" class="cell-editor">
-                        <h4>Ячейка {{ cell.day }}</h4>
-                        <label>
-                            Текст: 
-                            <input type="text" v-model="cell.text">
-                        </label>
-                        <label>
-                            Изображение: 
-                            <input type="text" v-model="cell.image" placeholder="URL изображения">
-                        </label>
-                        <label>
-                            Размер шрифта: 
-                            <input type="text" v-model="cell.textStyle.fontSize">
-                        </label>
-                        <label>
-                            Цвет текста: 
-                            <input type="color" v-model="cell.textStyle.color">
-                        </label>
-                        <label>
-                            Ширина: 
-                            <input type="number" v-model.number="cell.width">
-                        </label>
-                        <label>
-                            Высота: 
-                            <input type="number" v-model.number="cell.height">
-                        </label>
-                        <label>
-                            Позиция X (%): 
-                            <input type="number" v-model.number="cell.x">
-                        </label>
-                        <label>
-                            Позиция Y (%): 
-                            <input type="number" v-model.number="cell.y">
-                        </label>
-                        <label>
-                            Тип события: 
-                            <select v-model="cell.eventType">
-                                <option value="event">Мероприятие</option>
-                                <option value="class">Занятие</option>
-                            </select>
-                        </label>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="admin-preview">
-                <h3>Предпросмотр</h3>
-                <div class="preview-container">
-                    <div 
-                        v-for="cell in calendarCells" 
-                        :key="cell.id"
-                        class="preview-cell" 
-                        :style="{ 
-                            left: cell.x + '%', 
-                            top: cell.y + '%',
-                            width: cell.width + 'px',
-                            height: cell.height + 'px'
-                        }"
-                    >
-                        <img v-if="cell.image" :src="cell.image" class="cell-image" :style="{ width: cell.width + 'px', height: cell.height + 'px' }" />
-                        <div v-if="cell.text" class="cell-text" :style="cell.textStyle">{{ cell.text }}</div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="admin-actions">
-                <button @click="saveDesign" class="btn-save">Сохранить дизайн</button>
-                <button @click="currentView = 'calendar'" class="btn-back">Вернуться к календарю</button>
-            </div>
+            <AdminAuth 
+                v-else-if="currentView === 'adminAuth'"
+                @authenticate="authenticateAdmin"
+                @go-back="currentView = 'calendar'"
+            />
         </div>
     `
 };
