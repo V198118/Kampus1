@@ -24,6 +24,15 @@ const App = {
                 const config = await response.json();
                 Object.assign(designConfig, config);
                 
+                // Проверяем localStorage для переопределения конфига
+                const savedConfig = localStorage.getItem('designConfig');
+                if (savedConfig) {
+                    const parsedConfig = JSON.parse(savedConfig);
+                    if (parsedConfig.layout && parsedConfig.layout.backgroundImage) {
+                        designConfig.layout.backgroundImage = parsedConfig.layout.backgroundImage;
+                    }
+                }
+                
                 // Загрузка сохраненных ячеек
                 const savedCells = localStorage.getItem('calendarCells');
                 if (savedCells) {
@@ -179,7 +188,7 @@ const App = {
                     }"
                     @click="goToSchedule(cell.day)"
                 >
-                    <img v-if="cell.image" :src="cell.image" class="cell-image" />
+                    <img v-if="cell.image" :src="cell.image" class="cell-image" :style="{ width: cell.width + 'px', height: cell.height + 'px' }" />
                     <div v-if="cell.text" class="cell-text" :style="cell.textStyle">{{ cell.text }}</div>
                     
                     <div class="event-scroll-container">
@@ -263,7 +272,7 @@ const App = {
                             height: cell.height + 'px'
                         }"
                     >
-                        <img v-if="cell.image" :src="cell.image" class="cell-image" />
+                        <img v-if="cell.image" :src="cell.image" class="cell-image" :style="{ width: cell.width + 'px', height: cell.height + 'px' }" />
                         <div v-if="cell.text" class="cell-text" :style="cell.textStyle">{{ cell.text }}</div>
                     </div>
                 </div>
