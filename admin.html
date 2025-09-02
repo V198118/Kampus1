@@ -3,51 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Панель администратора</title>
-    <link rel="stylesheet" href="css/admin.css">
+    <title>Админ-панель</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.2.31/dist/vue.global.prod.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue-draggable-next@2.3.0/dist/vue-draggable-next.js"></script>
+    <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    <div class="admin-container">
-        <h1>Панель администратора</h1>
-        
-        <div class="auth-section" id="auth-section">
-            <input type="password" id="admin-password" placeholder="Введите пароль">
-            <button id="login-btn">Войти</button>
-        </div>
+    <div id="admin-app"></div>
 
-        <div class="admin-panel" id="admin-panel" style="display: none;">
-            <div class="controls">
-                <h2>Цвета</h2>
-                <label>Основной цвет: <input type="color" id="color-primary"></label>
-                <label>Фоновое изображение (URL): <input type="text" id="background-image-url"></label>
-
-                <h2>Шрифты</h2>
-                <label>Шрифт заголовков:
-                    <select id="font-headings">
-                        <option value="'Open Sans', sans-serif">Open Sans</option>
-                        <option value="'Roboto', sans-serif">Roboto</option>
-                        <option value="'Oswald', sans-serif">Oswald</option>
-                    </select>
-                </label>
-                <label>Размер месяца (px): <input type="number" id="font-size-month"></label>
-
-                <h2>Календарь</h2>
-                <label>Ширина ячейки (px): <input type="number" id="cell-width"></label>
-                <label>Высота ячейки (px): <input type="number" id="cell-height"></label>
-                <label>Отступ между ячейками (px): <input type="number" id="cell-margin"></label>
-                <label>Количество колонок: <input type="number" id="grid-columns"></label>
-
-                <button id="save-design-btn">Сохранить дизайн</button>
-                <button id="reset-design-btn">Сбросить к стандартному</button>
-            </div>
-
-            <div class="preview">
-                <h2>Предпросмотр</h2>
-                <iframe src="index.html" id="preview-frame"></iframe>
-            </div>
-        </div>
-    </div>
-
+    <script src="js/utils/config.js"></script>
+    <script src="js/utils/cells.js"></script>
+    <script src="js/utils/psbParser.js"></script>
+    <script src="js/components/AdminAuth.js"></script>
+    <script src="js/components/AdminDesign.js"></script>
+    <script src="js/components/AdminManagement.js"></script>
     <script src="js/admin.js"></script>
 </body>
 </html>
