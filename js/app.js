@@ -11,7 +11,26 @@ const App = {
         });
         const designConfig = reactive({
             layout: {
-                backgroundImage: ""
+                backgroundImage: "",
+                headerHeight: "80px",
+                filterWidth: "250px"
+            },
+            colors: {
+                primary: "#00539f",
+                secondary: "#ff9900",
+                text: "#333333",
+                buttonBg: "#ffffff",
+                buttonText: "#00539f",
+                cellBg: "rgba(255, 255, 255, 0.8)",
+                cellText: "#333333"
+            },
+            fonts: {
+                headings: "'Open Sans', sans-serif",
+                body: "'Roboto', sans-serif",
+                sizeMonth: "50px",
+                sizeFilter: "16px",
+                sizeEventTitle: "14px",
+                sizeEventDetails: "12px"
             },
             texts: {
                 allEvents: "Все события",
@@ -156,12 +175,12 @@ const App = {
         
         const backgroundStyle = computed(() => {
             const bgImage = designConfig.layout?.backgroundImage || '';
-            return {
-                backgroundImage: bgImage ? `url('${bgImage}')` : 'none',
+            return bgImage ? {
+                backgroundImage: `url('${bgImage}')`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
                 backgroundRepeat: 'no-repeat'
-            };
+            } : {};
         });
         
         const texts = computed(() => {
@@ -193,6 +212,10 @@ const App = {
             toggleFilterSidebar,
             toggleMenu
         };
+    },
+    components: {
+        Calendar,
+        AdminAuth
     },
     template: `
         <div>
