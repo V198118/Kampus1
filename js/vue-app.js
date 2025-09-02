@@ -1,4 +1,4 @@
-const { createApp, ref, reactive, onMounted, computed, nextTick } = Vue;
+const { createApp, ref, reactive, onMounted, computed } = Vue;
 
 const App = {
     setup() {
@@ -16,6 +16,8 @@ const App = {
         const calendarCells = ref([]);
         const isAdmin = ref(false);
         const adminPassword = ref('');
+        const currentFilter = ref('all');
+        const isFilterSidebarOpen = ref(false);
         
         // Загрузка конфигурации
         const loadConfig = async () => {
@@ -53,6 +55,10 @@ const App = {
             calendarCells.value = [];
             
             for (let day = 1; day <= daysInMonth; day++) {
+                // Случайным образом определяем тип события для демонстрации
+                const eventTypes = ['event', 'class', 'event', 'class', 'event'];
+                const randomEventType = eventTypes[Math.floor(Math.random() * eventTypes.length)];
+                
                 calendarCells.value.push({
                     id: day,
                     day: day,
@@ -62,6 +68,7 @@ const App = {
                     height: 120,
                     text: '',
                     image: '',
+                    eventType: randomEventType, // Тип события для фильтрации
                     textStyle: {
                         fontSize: '14px',
                         fontFamily: 'Arial',
@@ -90,6 +97,23 @@ const App = {
             initializeCalendarCells();
         };
         
+        // Переключение фильтра
+        const setFilter = (filter) => {
+            currentFilter.value = filter;
+        };
+        
+        // Фильтрация ячеек
+        const filteredCells = computed(() => {
+            if (currentFilter.value === 'all') {
+                return calendarCells.value;
+            } else if (currentFilter.value === 'events') {
+                return calendarCells.value.filter(cell => cell.eventType === 'event');
+            } else if (currentFilter.value === 'classes') {
+                return calendarCells.value.filter(cell => cell.eventType === 'class');
+            }
+            return calendarCells.value;
+        });
+        
         // Переход к расписанию
         const goToSchedule = (day) => {
             const formattedDate = `${currentDate.year}-${(currentDate.month + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
@@ -114,6 +138,11 @@ const App = {
             alert('Дизайн сохранен!');
         };
         
+        // Переключение боковой панели
+        const toggleFilterSidebar = () => {
+            isFilterSidebarOpen.value = !isFilterSidebarOpen.value;
+        };
+        
         // Инициализация при загрузке
         onMounted(() => {
             loadConfig();
@@ -136,6 +165,10 @@ const App = {
             };
         });
         
+        const filterSidebarClass = computed(() => {
+            return isFilterSidebarOpen.value ? 'filter-sidebar active' : 'filter-sidebar';
+        });
+        
         return {
             currentView,
             currentDate,
@@ -143,12 +176,18 @@ const App = {
             calendarCells,
             isAdmin,
             adminPassword,
+            currentFilter,
+            isFilterSidebarOpen,
             monthName,
             backgroundStyle,
+            filteredCells,
+            filterSidebarClass,
             changeMonth,
             goToSchedule,
             authenticateAdmin,
-            saveDesign
+            saveDesign,
+            setFilter,
+            toggleFilterSidebar
         };
     },
     template: `
@@ -163,21 +202,38 @@ const App = {
                 </div>
             </header>
 
-            <aside class="filter-sidebar">
-                <div class="filter-toggle">
+            <aside :class="filterSidebarClass">
+                <div class="filter-toggle" @click="toggleFilterSidebar">
                     <span>☰</span>
                 </div>
                 <nav class="filter-menu">
-                    <button class="filter-btn active">Все события</button>
-                    <button class="filter-btn">Мероприятия</button>
-                    <button class="filter-btn">Занятия</button>
-                    <button @click="currentView = 'adminAuth'" class="filter-btn">Админ-панель</button>
+                    <button 
+                        :class="['filter-btn', { active: currentFilter === 'all' }]" 
+                        @click="setFilter('all')"
+                    >
+                        Все события
+                    </button>
+                    <button 
+                        :class="['filter-btn', { active: currentFilter === 'events' }]" 
+                        @click="setFilter('events')"
+                    >
+                        Мероприятия
+                    </button>
+                    <button 
+                        :class="['filter-btn', { active: currentFilter === 'classes' }]" 
+                        @click="setFilter('classes')"
+                    >
+                        Занятия
+                    </button>
+                    <button @click="currentView = 'adminAuth'" class="filter-btn">
+                        Админ-панель
+                    </button>
                 </nav>
             </aside>
 
             <main class="calendar-container">
                 <div 
-                    v-for="cell in calendarCells" 
+                    v-for="cell in filteredCells" 
                     :key="cell.id"
                     class="calendar-cell" 
                     :style="{ 
@@ -193,7 +249,9 @@ const App = {
                     
                     <div class="event-scroll-container">
                         <div class="event-scroll">
-                            <div class="event-title">Пример события</div>
+                            <div class="event-title">
+                                {{ cell.eventType === 'event' ? 'Мероприятие' : 'Занятие' }} {{ cell.day }}
+                            </div>
                             <div class="event-details">Организация, время, место</div>
                         </div>
                     </div>
@@ -253,6 +311,13 @@ const App = {
                         <label>
                             Позиция Y (%): 
                             <input type="number" v-model.number="cell.y">
+                        </label>
+                        <label>
+                            Тип события: 
+                            <select v-model="cell.eventType">
+                                <option value="event">Мероприятие</option>
+                                <option value="class">Занятие</option>
+                            </select>
                         </label>
                     </div>
                 </div>
