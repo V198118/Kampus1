@@ -40,7 +40,7 @@ const Calendar = {
     },
     template: `
         <div>
-            <div id="background-container" :style="backgroundStyle"></div>
+            <div id="background-container" :style="backgroundStyle || {}"></div>
             
             <aside :class="['filter-sidebar', { active: isFilterSidebarOpen }]">
                 <div class="filter-toggle" @click="$emit('toggle-filter-sidebar')">
@@ -130,6 +130,3 @@ const Calendar = {
         }
     }
 };
-
-// Убираем глобальную регистрацию компонента
-// Компонент будет регистрироваться локально
