@@ -9,7 +9,17 @@ const App = {
             year: new Date().getFullYear(),
             month: new Date().getMonth()
         });
-        const designConfig = reactive({});
+        const designConfig = reactive({
+            layout: {
+                backgroundImage: ""
+            },
+            texts: {
+                allEvents: "Все события",
+                events: "Мероприятия",
+                classes: "Занятия",
+                admin: "Админ-панель"
+            }
+        });
         const calendarCells = ref([]);
         const isAdmin = ref(false);
         const adminPassword = ref('');
@@ -154,10 +164,6 @@ const App = {
             };
         });
         
-        const filterSidebarClass = computed(() => {
-            return isFilterSidebarOpen.value ? 'filter-sidebar active' : 'filter-sidebar';
-        });
-        
         const texts = computed(() => {
             return designConfig.texts || {
                 allEvents: "Все события",
@@ -178,7 +184,6 @@ const App = {
             isFilterSidebarOpen,
             monthName,
             backgroundStyle,
-            filterSidebarClass,
             texts,
             changeMonth,
             goToSchedule,
@@ -188,10 +193,6 @@ const App = {
             toggleFilterSidebar,
             toggleMenu
         };
-    },
-    components: {
-        Calendar,
-        AdminAuth
     },
     template: `
         <div>
