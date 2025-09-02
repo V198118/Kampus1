@@ -15,3 +15,8 @@ const AdminAuth = {
         </div>
     `
 };
+
+// Глобальная регистрация компонента
+if (typeof Vue !== 'undefined') {
+    Vue.component('AdminAuth', AdminAuth);
+}
