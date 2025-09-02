@@ -25,5 +25,11 @@
     "month": 10,
     "year": 2025,
     "activeFilter": "all"
+  },
+  "texts": {
+    "allEvents": "Все события",
+    "events": "Мероприятия",
+    "classes": "Занятия",
+    "admin": "Админ-панель"
   }
 }
