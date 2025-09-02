@@ -4,6 +4,9 @@ const ConfigUtils = {
     async loadConfig() {
         try {
             const response = await fetch('config/design-config.json');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
             return await response.json();
         } catch (error) {
             console.error('Ошибка загрузки конфига:', error);
