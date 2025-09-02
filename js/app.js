@@ -174,7 +174,12 @@ const App = {
         });
         
         const backgroundStyle = computed(() => {
-            const bgImage = designConfig.layout?.backgroundImage || '';
+            // Добавляем дополнительные проверки для избежания ошибок
+            if (!designConfig || !designConfig.layout || !designConfig.layout.backgroundImage) {
+                return {};
+            }
+            
+            const bgImage = designConfig.layout.backgroundImage;
             return bgImage ? {
                 backgroundImage: `url('${bgImage}')`,
                 backgroundSize: 'cover',
