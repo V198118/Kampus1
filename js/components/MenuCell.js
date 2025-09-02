@@ -13,7 +13,8 @@ const MenuCell = {
                 height: cell.height + 'px',
                 fontSize: cell.textStyle.fontSize,
                 fontFamily: cell.textStyle.fontFamily,
-                color: cell.textStyle.color
+                color: cell.textStyle.color,
+                zIndex: cell.textStyle.zIndex
             }"
             @click="toggleMenu"
         >
@@ -32,3 +33,8 @@ const MenuCell = {
         }
     }
 };
+
+// Глобальная регистрация компонента
+if (typeof Vue !== 'undefined') {
+    Vue.component('MenuCell', MenuCell);
+}
