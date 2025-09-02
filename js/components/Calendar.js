@@ -88,8 +88,8 @@ const Calendar = {
                     :key="cell.id"
                     :cell="cell"
                     :texts="texts"
-                    :set-filter="$emit.bind(this, 'set-filter')"
-                    :show-admin-auth="$emit.bind(this, 'show-admin-auth')"
+                    :set-filter="setFilter"
+                    :show-admin-auth="showAdminAuth"
                     @toggle-menu="$emit('toggle-menu', $event)"
                 />
                 
@@ -120,5 +120,18 @@ const Calendar = {
                 </div>
             </main>
         </div>
-    `
+    `,
+    methods: {
+        setFilter(filter) {
+            this.$emit('set-filter', filter);
+        },
+        showAdminAuth() {
+            this.$emit('show-admin-auth');
+        }
+    }
 };
+
+// Глобальная регистрация компонента
+if (typeof Vue !== 'undefined') {
+    Vue.component('Calendar', Calendar);
+}
