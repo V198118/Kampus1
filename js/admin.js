@@ -4,7 +4,36 @@ const { createApp, ref, reactive, onMounted, computed } = Vue;
 const AdminApp = {
     setup() {
         const currentTab = ref('design');
-        const designConfig = reactive({});
+        const designConfig = reactive({
+            layout: {
+                backgroundImage: "",
+                headerHeight: "80px",
+                filterWidth: "250px"
+            },
+            colors: {
+                primary: "#00539f",
+                secondary: "#ff9900",
+                text: "#333333",
+                buttonBg: "#ffffff",
+                buttonText: "#00539f",
+                cellBg: "rgba(255, 255, 255, 0.8)",
+                cellText: "#333333"
+            },
+            fonts: {
+                headings: "'Open Sans', sans-serif",
+                body: "'Roboto', sans-serif",
+                sizeMonth: "50px",
+                sizeFilter: "16px",
+                sizeEventTitle: "14px",
+                sizeEventDetails: "12px"
+            },
+            texts: {
+                allEvents: "Все события",
+                events: "Мероприятия",
+                classes: "Занятия",
+                admin: "Админ-панель"
+            }
+        });
         const calendarCells = ref([]);
         const isAuthenticated = ref(false);
         const adminPassword = ref('');
@@ -22,12 +51,20 @@ const AdminApp = {
                 
                 // Загрузка конфигурации
                 const config = await ConfigUtils.loadConfig();
-                Object.assign(designConfig, config);
+                if (config) {
+                    Object.assign(designConfig, config);
+                }
                 
                 // Загрузка сохраненной конфигурации
                 const savedConfig = ConfigUtils.loadSavedConfig();
                 if (savedConfig) {
-                    Object.assign(designConfig, savedConfig);
+                    // Аккуратно обновляем свойства, сохраняя структуру
+                    if (savedConfig.layout) {
+                        Object.assign(designConfig.layout, savedConfig.layout);
+                    }
+                    if (savedConfig.texts) {
+                        Object.assign(designConfig.texts, savedConfig.texts);
+                    }
                 }
                 
                 // Загрузка ячеек
@@ -50,6 +87,7 @@ const AdminApp = {
             if (password === 'admin123') {
                 isAuthenticated.value = true;
                 localStorage.setItem('adminAuthenticated', 'true');
+                loadConfig(); // Перезагружаем конфигурацию после аутентификации
             } else {
                 alert('Неверный пароль');
             }
@@ -83,7 +121,12 @@ const AdminApp = {
         
         // Инициализация при загрузке
         onMounted(() => {
-            loadConfig();
+            // Проверяем аутентификацию при загрузке
+            const auth = localStorage.getItem('adminAuthenticated');
+            if (auth && auth === 'true') {
+                isAuthenticated.value = true;
+                loadConfig();
+            }
         });
         
         return {
