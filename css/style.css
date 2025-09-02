@@ -1,4 +1,208 @@
-/* Добавьте эти стили в конец файла */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: var(--body-font, 'Roboto', sans-serif);
+    color: var(--text-color, #333);
+    min-height: 100vh;
+}
+
+/* Стили для фонового контейнера */
+#background-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+}
+
+/* Заголовок с месяцем и кнопками */
+header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: var(--header-height, 80px);
+    padding: 10px;
+    position: relative;
+    background: rgba(255, 255, 255, 0.8);
+}
+
+.month-navigation {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+#current-month-year {
+    font-size: var(--font-size-month, 50px);
+    font-family: var(--headings-font, 'Open Sans', sans-serif);
+}
+
+.month-navigation button {
+    background: var(--button-bg, #fff);
+    color: var(--button-text, #00539f);
+    border: 2px solid var(--primary-color, #00539f);
+    border-radius: 5px;
+    padding: 10px 15px;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+/* Боковая панель с фильтрами */
+.filter-sidebar {
+    position: fixed;
+    left: 0;
+    top: var(--header-height, 80px);
+    height: calc(100vh - var(--header-height, 80px));
+    width: var(--filter-width, 250px);
+    background: var(--cell-bg, rgba(255, 255, 255, 0.9));
+    transform: translateX(calc(-1 * var(--filter-width, 250px)));
+    transition: transform 0.3s ease;
+    z-index: 100;
+    padding: 20px;
+}
+
+.filter-sidebar.active {
+    transform: translateX(0);
+}
+
+.filter-toggle {
+    position: absolute;
+    right: -40px;
+    top: 10px;
+    background: var(--primary-color, #00539f);
+    color: white;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border-radius: 0 5px 5px 0;
+}
+
+.filter-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.filter-btn {
+    background: var(--button-bg, #fff);
+    color: var(--button-text, #00539f);
+    border: 1px solid var(--primary-color, #00539f);
+    border-radius: 5px;
+    padding: 10px;
+    cursor: pointer;
+    text-align: left;
+    font-size: var(--font-size-filter, 16px);
+}
+
+.filter-btn.active {
+    background: var(--primary-color, #00539f);
+    color: white;
+}
+
+/* Сетка календаря */
+.calendar-container {
+    position: relative;
+    height: calc(100vh - var(--header-height, 80px));
+    margin: 20px;
+}
+
+.calendar-cell {
+    position: absolute;
+    background: var(--cell-bg, rgba(255, 255, 255, 0.8));
+    border-radius: 5px;
+    padding: 10px;
+    cursor: pointer;
+    transition: transform 0.2s;
+    overflow: hidden;
+}
+
+.calendar-cell:hover {
+    transform: scale(1.05);
+}
+
+.cell-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    object-fit: cover;
+    z-index: 1;
+}
+
+.cell-text {
+    position: relative;
+    z-index: 2;
+    word-break: break-word;
+}
+
+.event-scroll-container {
+    height: 80px;
+    overflow: hidden;
+    position: relative;
+    z-index: 3;
+}
+
+.event-scroll {
+    position: absolute;
+    width: 100%;
+    animation: scroll 15s linear infinite;
+}
+
+.event-title {
+    font-size: var(--font-size-event-title, 14px);
+    white-space: nowrap;
+}
+
+.event-details {
+    font-size: var(--font-size-event-details, 12px);
+    margin-top: 5px;
+    display: none;
+}
+
+.event-scroll-container:hover .event-details {
+    display: block;
+}
+
+.event-scroll-container:hover .event-scroll {
+    animation-play-state: paused;
+}
+
+@keyframes scroll {
+    0% { transform: translateY(100%); }
+    100% { transform: translateY(-100%); }
+}
+
+/* Стили для страницы расписания */
+.back-link {
+    position: absolute;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--primary-color, #00539f);
+    text-decoration: none;
+}
+
+.schedule-container {
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 10px;
+}
+
+.schedule-event {
+    background: var(--cell-bg, rgba(255, 255, 255, 0.8));
+    margin-bottom: 15px;
+    padding: 15px;
+    border-radius: 5px;
+}
 
 /* Стили для админ-панели */
 .admin-auth {
@@ -87,6 +291,7 @@
     padding: 5px;
     cursor: move;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
 }
 
 .admin-actions {
@@ -127,8 +332,24 @@
     margin-top: 5px;
 }
 
-/* Адаптивность для админ-панели */
+/* Адаптивность */
 @media (max-width: 768px) {
+    .calendar-container {
+        margin: 10px;
+    }
+    
+    .calendar-cell {
+        position: relative;
+        left: 0 !important;
+        top: 0 !important;
+        margin-bottom: 10px;
+    }
+    
+    .filter-sidebar {
+        width: 100%;
+        transform: translateX(-100%);
+    }
+    
     .admin-controls {
         grid-template-columns: 1fr;
     }
@@ -136,14 +357,4 @@
     .cell-editor {
         padding: 5px;
     }
-}
-
-/* Стили для фонового контейнера */
-#background-container {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: -1;
 }
